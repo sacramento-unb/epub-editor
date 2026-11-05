@@ -1,122 +1,231 @@
-# ebook-formatter
+# Conversor e editor de PDF para EPUB (com IA opcional)
 
-Turn a PDF file into a clean, reflowable EPUB that actually reads well on an e-reader
-(Kindle, Kobo, Apple Books, and so on) — instead of the tiny, unzoomable, page-locked
-mess you get from just renaming a PDF to `.epub`.
+Aplicação web que transforma PDFs em EPUB 3 editáveis. Você revisa os elementos detectados (títulos,
+parágrafos, listas, tabelas, figuras, notas, cabeçalhos, números de página…), marca o que entra no
+livro, edita a estrutura e exporta em **modo fluido** (padrão) ou **layout fixo**. O EPUB é validado
+com o **EPUBCheck**.
 
-Point it at a PDF, watch a live side-by-side preview of what will change, and download
-an EPUB with running headers/footers and page numbers stripped, hyphenation and line
-breaks cleaned up, footnotes turned into linked chapter endnotes, and a proper table of
-contents. Everything runs locally — no file ever leaves your machine.
+Há dois fluxos de IA **opcionais e independentes**:
 
-> **Try it online:** You can use the web version directly at [pdf2ereader.vercel.app](https://pdf2ereader.vercel.app/).
+- **Fidelidade visual:** compara a renderização real do EPUB exportado com o PDF e propõe ajustes reversíveis.
+- **Reformatação editorial:** lê XHTML, CSS e sumário do EPUB e melhora a apresentação, sem reescrever o conteúdo.
 
-## Why
+A conversão, a edição manual, a prévia e a exportação funcionam **sem chave de API e sem modelo instalado**.
 
-Most "PDF to EPUB" converters either shell out to Calibre and keep every page-layout
-artifact (headers, footers, running titles, hyphenated line breaks, mid-sentence page
-splits), or they OCR the whole thing and lose the structure. Neither is pleasant to
-actually read on a 6" screen. This tool does layout-aware extraction instead: it looks
-at where text actually sits on the page and reconstructs it as prose, the way an EPUB
-is supposed to work.
+> Não há conversão perfeita de qualquer PDF. A extração é heurística, e as classificações incertas
+> aparecem como pendências editáveis. Veja [docs/LIMITACOES.md](docs/LIMITACOES.md).
 
-## What it does
+## Executar com Docker (recomendado)
 
-- **Strips headers, footers, and page numbers** — using adjustable margin sliders,
-  plus automatic detection of repeating running heads (so it works even when a header
-  only shows up on a handful of chapter pages, not every page).
-- **Cleans up line breaks** — de-hyphenates words split across lines, merges wrapped
-  lines into real paragraphs, and joins a paragraph that gets cut off mid-sentence by
-  a page break.
-- **Two-column layouts** — reads left column then right column, not left-line,
-  right-line, left-line.
-- **Footnotes → endnotes** — detects footnote markers (`¹`, `[1]`, `1.`) and their
-  matching note at the bottom of the page, removes the note from the body, links the
-  reference to a linked, backlinked "Endnotes" section at the end of each chapter.
-- **Images, figures, and tables** — inline images become isolated, non-cropped image
-  blocks; infographics, diagrams, and pull quotes (detected from the page's vector
-  drawings and page geometry) are rendered as pictures in place; small text tables
-  become real HTML tables; two-column glossaries become definition lists.
-- **Rotated / scanned pages** — a sideways map or a page with no real text layer is
-  kept as an upright image instead of turning into garbage text.
-- **Table of contents** — built from the PDF's native bookmarks, or parsed from a
-  visual "Contents" page if there are none, and wired up as a real EPUB navigation
-  document (`nav.xhtml` / `toc.ncx`) plus an inline TOC page.
-- **Live preview** — step through the PDF page by page, see exactly what will be
-  stripped (highlighted in red) and what the cleaned-up HTML will look like, before
-  you convert anything.
-
-## Screenshot
-
-![Left panel has the margin sliders, an odd/even margin split, and cleanup toggles; the right panel shows the original PDF page next to the cleaned-up preview, with stripped header/footer text highlighted in red.](docs/screenshot.webp)
-
-## Requirements
-
-- Python 3.10+
-- No external services, no API keys, no network access needed at runtime
-
-## Quickstart
-
-### Hosted Web App
-
-Access the live version directly in your browser: [https://pdf2ereader.vercel.app/](https://pdf2ereader.vercel.app/)
-
-### Local Setup
+Pré-requisitos: Docker com Compose v2.
 
 ```bash
-git clone https://github.com/rayestu/ebook-formatter.git
-cd ebook-formatter
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/python run.py
+cp .env.example .env
 ```
 
-This starts a local server on `http://127.0.0.1:8000` (or the next free port) and
-opens it in your browser automatically.
-
-Upload a PDF, adjust the margin sliders and toggles while watching the preview, hit
-**Convert to EPUB**, and the finished file is saved straight to your Downloads folder
-(with a fallback "Download a copy" button if that fails).
-
-## How it works
-
-```
-app/
-  main.py           FastAPI app: upload, preview, convert, download
-  engine/
-    extract.py      Per-page text/image/vector-drawing extraction (PyMuPDF)
-    classify.py     Header/footer/page-number/running-head detection
-    flow.py         Paragraph merging, de-hyphenation, columns, lists,
-                    tables, figures, pull quotes, cross-page joins
-    footnotes.py    Footnote marker & note detection
-    toc.py          Table of contents (bookmarks + visual fallback)
-    build_html.py   Paragraph stream -> chapter XHTML
-    epub.py         EPUB packaging (ebooklib)
-    pipeline.py     Orchestrates it all; used by both the preview and
-                    the final conversion
-  static/           Vanilla HTML/CSS/JS frontend, no build step
-```
-
-Built with [PyMuPDF](https://pymupdf.readthedocs.io/) for PDF structure extraction,
-[BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) for HTML cleanup,
-[ebooklib](https://github.com/aerkalov/ebooklib) for EPUB packaging, and
-[FastAPI](https://fastapi.tiangolo.com/) for the backend.
-
-## Testing
+Edite o `.env` e defina `APP_SECRET_KEY`. Ela é necessária para salvar a chave do Gemini pela interface
+e senhas de PDFs protegidos. Para gerar uma:
 
 ```bash
-.venv/bin/python -m pytest -q tests
+python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-The test suite generates synthetic PDFs covering headers/footers, de-hyphenation,
-cross-page merges, footnotes, glossaries, lists, two-column layouts, tables, rotated
-figures, and table-of-contents extraction, then validates the resulting EPUBs
-(structure, manifest, internal links) end to end.
+Depois suba os serviços:
 
-## Contributing
+```bash
+docker compose up -d --build
+```
 
-This project is fully open source under the MIT license, and contributions are welcome! Feel free to open issues, submit pull requests, or suggest new features to help improve the tool.
+Abra <http://localhost:3000>. Os serviços:
 
-## License
+| Serviço | Função | Porta (apenas 127.0.0.1) |
+|---|---|---|
+| `web` | Interface Next.js/React/TypeScript | 3000 |
+| `api` | FastAPI, que aplica as migrações Alembic na partida | 8000 |
+| `worker` | Tarefas longas: análise, exportação, validação, IA (CPU/memória limitadas) | — |
+| `db` | PostgreSQL 17 | — |
+| `ollama` | Opcional, perfil `ollama` | 11434 |
 
-[MIT](LICENSE)
+Logs e parada:
+
+```bash
+docker compose logs -f worker
+```
+
+```bash
+docker compose down
+```
+
+Os dados ficam nos volumes `pgdata` e `appdata`.
+
+## Desenvolvimento local (sem Docker)
+
+Pré-requisitos: Python 3.12, Node 24+, Java 17+ (EPUBCheck), Tesseract com `por` e `eng`, Chromium
+(para a comparação visual).
+
+```bash
+cd backend && uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -r requirements-dev.txt
+```
+
+EPUBCheck: baixe o release oficial em `tools/` (a pasta é ignorada pelo git):
+
+```bash
+mkdir -p tools && curl -L -o tools/epubcheck.zip https://github.com/w3c/epubcheck/releases/download/v5.4.0/epubcheck-5.4.0.zip && unzip -o tools/epubcheck.zip -d tools
+```
+
+API (SQLite local em `backend/data/`):
+
+```bash
+cd backend && DATABASE_URL=sqlite:///./data/dev.db APP_SECRET_KEY=troque-por-um-segredo-longo CHROMIUM_PATH=/usr/bin/chromium .venv/bin/uvicorn app.main:app --port 8000
+```
+
+Worker (em outro terminal):
+
+```bash
+cd backend && DATABASE_URL=sqlite:///./data/dev.db APP_SECRET_KEY=troque-por-um-segredo-longo CHROMIUM_PATH=/usr/bin/chromium .venv/bin/python -m app.worker
+```
+
+Frontend:
+
+```bash
+cd frontend && npm install && API_URL=http://127.0.0.1:8000 npm run dev
+```
+
+## Uso
+
+1. **Projetos → Importar:** arraste um PDF (até `MAX_UPLOAD_MB`, padrão 200 MB, e `MAX_PAGES`, padrão
+   2000). O navegador envia o arquivo em partes de 8 MiB, porque o proxy do Next aceita no máximo
+   10 MiB por requisição; o envio é retomável. A assinatura, a integridade, o tamanho e o número de
+   páginas são validados. Para PDF protegido, a senha é pedida e nenhuma proteção é contornada. A análise roda
+   em segundo plano: extração nativa primeiro, OCR (Tesseract) só nas páginas sem texto.
+2. **Área de trabalho:**
+   - **Painel esquerdo:** árvore por capítulo, página ou tipo. Tem caixas de inclusão (grupos com estado
+     parcial), busca, filtros (tipo, excluídos, pendências, bloqueados) e arrastar e soltar para
+     reordenar elementos e capítulos. Ctrl/Shift+clique seleciona vários.
+   - **Ações em lote:** incluir ou excluir a seleção, a página, o capítulo, um intervalo de páginas
+     ("1-3, 7") ou "equivalentes" (mesmo tipo e mesmo padrão de texto, como cabeçalhos repetidos).
+     Exclusões individuais explícitas são respeitadas pelas ações em grupo.
+   - **Inspetor:** tipo semântico, nível de título, texto, legenda, texto alternativo e estilos editoriais.
+     Também permite bloquear contra IA, dividir no cursor, unir com o próximo, agrupar e desagrupar.
+   - **PDF:** zoom e rotação com overlays alinhados. Clique seleciona o elemento; **Shift+arrastar** cria
+     um recorte manual. "Mostrar detecções" só oculta os destaques e não muda a exportação.
+   - **EPUB:** prévia do arquivo exportado de verdade, com presets de tela, tamanho de fonte, leitura
+     contínua ou paginada e tema. Clicar no texto seleciona o elemento.
+   - Toda edição é salva automaticamente como revisão. Use **Ctrl+Z** e **Ctrl+Shift+Z** para
+     desfazer e refazer, **Salvar versão** para marcar um ponto e **Histórico** para restaurar.
+3. **Gerar EPUB:** escolha fluido ou fixo. O EPUB passa pelo EPUBCheck e pela verificação de integridade
+   do conteúdo. Depois use **Baixar EPUB**.
+4. **IA (opcional):** configure em *Configurações de IA* e use **Comparar visualmente com IA** ou
+   **Reformatar com IA**. Antes de iniciar, o diálogo mostra o que será enviado e para onde.
+   As propostas aparecem em **Propostas de IA**, onde você aprova tudo ou alteração por alteração.
+
+### Executar sem IA
+
+É o padrão (modo "Sem IA"). Nada é enviado a serviços externos.
+
+### Configurar o Gemini
+
+1. Em *Configurações de IA*, escolha **Gemini** e salve a chave. Ela fica só no servidor, cifrada com
+   `APP_SECRET_KEY`, e nunca volta ao navegador. Alternativa: `GEMINI_API_KEY` no `.env`.
+2. Informe os modelos textual e multimodal ("Listar modelos disponíveis" ajuda) e clique em
+   **Detectar capacidades**. Isso faz uma chamada mínima com uma imagem e um schema JSON.
+3. Para estimar custos, cadastre os preços por milhão de tokens. Sem preço configurado, nenhuma
+   estimativa é exibida.
+
+O SDK usado é o `google-genai` (2.33.0), com `models.generate_content` e `response_json_schema`.
+O modelo padrão `gemini-3.8-flash` vem do `.env.example` e dos exemplos da documentação oficial.
+Confira sempre a lista atual de modelos.
+
+### Configurar IA local (Ollama)
+
+1. Instale o [Ollama](https://ollama.com) no host ou use `docker compose --profile ollama up -d`.
+2. Baixe um modelo textual e um multimodal. Os nomes abaixo são exemplos; escolha conforme a sua
+   memória (veja a tabela em [docs/LIMITACOES.md](docs/LIMITACOES.md)):
+
+   ```bash
+   ollama pull qwen3:8b
+   ```
+
+   ```bash
+   ollama pull gemma3:4b
+   ```
+
+3. Em *Configurações de IA*, escolha **IA local** e informe o endereço:
+   - Docker → Ollama no host: `http://host.docker.internal:11434`. No Linux, o Ollama precisa escutar
+     em `0.0.0.0`: use `OLLAMA_HOST=0.0.0.0 ollama serve` ou edite o serviço do systemd.
+   - Ollama no perfil do compose: `http://ollama:11434`.
+   - Desenvolvimento sem Docker: `http://localhost:11434`.
+
+   Os hosts aceitos são definidos pelo administrador em `OLLAMA_ALLOWED_HOSTS`.
+4. Selecione os modelos e clique em **Detectar capacidades**. A detecção combina `/api/show` com um
+   teste ativo com imagem. Sem visão confirmada, a comparação visual fica desabilitada.
+5. O modo local **nunca** recorre à nuvem. Falta de memória, timeout ou capacidade incompatível geram
+   um erro claro e o trabalho é preservado.
+
+**GPU:** no Ollama do host, use o driver NVIDIA/ROCm do sistema. No contêiner, descomente `deploy`
+no serviço `ollama`, o que requer o NVIDIA Container Toolkit. Sem GPU, os modelos rodam em CPU,
+mais devagar.
+
+### Validar e exportar
+
+Cada exportação registra a versão do EPUBCheck, os erros e avisos com localização, a verificação de
+integridade (elementos ausentes, números perdidos, texto inesperado ou duplicado) e os avisos do
+gerador, como links removidos para evitar links quebrados. Tudo aparece no **Histórico**.
+O botão **Validar** roda as verificações de novo sobre a última exportação.
+
+### Backup e restauração
+
+Backup:
+
+```bash
+docker compose exec db pg_dump -U epub epub > backup.sql
+```
+
+```bash
+docker run --rm -v pdf-epub_appdata:/data -v "$PWD":/b alpine tar czf /b/appdata.tgz -C /data .
+```
+
+Restauração, com os serviços `api`, `worker` e `web` parados:
+
+```bash
+docker compose exec -T db psql -U epub epub < backup.sql
+```
+
+```bash
+docker run --rm -v pdf-epub_appdata:/data -v "$PWD":/b alpine tar xzf /b/appdata.tgz -C /data
+```
+
+Use o mesmo `APP_SECRET_KEY`. Sem ele, chaves e senhas cifradas não podem ser lidas e precisam ser
+cadastradas de novo.
+
+## Testes
+
+Backend (unitários, integração com PDFs gerados localmente, API e IA com provedor simulado):
+
+```bash
+cd backend && .venv/bin/python -m pytest -q
+```
+
+Frontend (transformações de coordenadas) e checagem de tipos:
+
+```bash
+cd frontend && npm test && npm run typecheck
+```
+
+Para gerar os PDFs de exemplo usados nos testes:
+
+```bash
+cd backend && .venv/bin/python -m tests.fixtures ../samples
+```
+
+Os resultados medidos e o que foi ou não verificado de verdade estão em
+[docs/VERIFICACAO.md](docs/VERIFICACAO.md).
+
+## Documentação
+
+- [Arquitetura e modelo documental](docs/ARQUITETURA.md)
+- [Contratos das alterações de IA](docs/SCHEMAS_IA.md) e [JSON Schemas](docs/schemas/)
+- [Dependências, versões e licenças](docs/DEPENDENCIAS.md)
+- [Verificação e testes executados](docs/VERIFICACAO.md)
+- [Limitações](docs/LIMITACOES.md)
+- [Registro de progresso](docs/PROGRESSO.md)

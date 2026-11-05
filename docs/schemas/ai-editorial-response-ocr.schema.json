@@ -1,0 +1,131 @@
+{
+  "$comment": "ai-ops/1 (com correção de OCR)",
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": [
+              "link_caption",
+              "merge",
+              "move",
+              "set_alt",
+              "set_chapter_break",
+              "set_global_style",
+              "set_heading_level",
+              "set_style",
+              "set_text",
+              "set_type",
+              "split"
+            ]
+          },
+          "target_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 6
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "heading",
+              "paragraph",
+              "list_item",
+              "blockquote",
+              "caption"
+            ]
+          },
+          "style": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ]
+            },
+            "description": "tokens: align=left|center|right|justify; emphasis=none|bold|italic|bold-italic|small-caps; size=xsmall|small|normal|large|xlarge; spacing_before=none|small|normal|large; spacing_after=none|small|normal|large; indent=none|first-line|block; width=25|50|75|100; list_style=disc|decimal|none; page_break_before=auto|always"
+          },
+          "global_props": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ]
+            },
+            "description": "body_font: serif|sans-serif|monospace; heading_font: serif|sans-serif|monospace; line_height: 1.0..2.2; paragraph_spacing_em: 0.0..2.0; text_indent_em: 0.0..3.0; text_align: left|justify; margin_em: 0.0..4.0; heading_scale: 1.0..1.6; image_max_width_pct: 30..100; hyphens: auto|manual|none"
+          },
+          "caption_id": {
+            "type": "string"
+          },
+          "before_id": {
+            "type": "string"
+          },
+          "after_id": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "value": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "risk": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "op",
+          "target_ids",
+          "reason"
+        ]
+      }
+    }
+  },
+  "required": [
+    "summary",
+    "operations"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "$comment": "ai-ops/1",
+  "type": "object",
+  "properties": {
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "heading_policy": {
+      "type": "string"
+    },
+    "global_props": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ]
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "rules",
+    "heading_policy",
+    "global_props"
+  ]
+}

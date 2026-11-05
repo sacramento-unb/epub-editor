@@ -1,0 +1,920 @@
+{
+  "$comment": "operações tipadas do motor (ops schema v1)",
+  "$defs": {
+    "CreateRegion": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "create_region",
+          "default": "create_region",
+          "title": "Op",
+          "type": "string"
+        },
+        "page": {
+          "minimum": 0,
+          "title": "Page",
+          "type": "integer"
+        },
+        "bbox": {
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Bbox",
+          "type": "array"
+        },
+        "type": {
+          "default": "region",
+          "enum": [
+            "figure",
+            "image",
+            "formula",
+            "region",
+            "table"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "alt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alt"
+        },
+        "new_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "New Id"
+        }
+      },
+      "required": [
+        "page",
+        "bbox"
+      ],
+      "title": "CreateRegion",
+      "type": "object"
+    },
+    "Group": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "group",
+          "default": "group",
+          "title": "Op",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Ids",
+          "type": "array"
+        },
+        "type": {
+          "default": "figure",
+          "enum": [
+            "figure",
+            "region",
+            "formula"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "new_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "New Id"
+        }
+      },
+      "required": [
+        "ids"
+      ],
+      "title": "Group",
+      "type": "object"
+    },
+    "LinkCaption": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "link_caption",
+          "default": "link_caption",
+          "title": "Op",
+          "type": "string"
+        },
+        "figure_id": {
+          "title": "Figure Id",
+          "type": "string"
+        },
+        "caption_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Caption Id"
+        }
+      },
+      "required": [
+        "figure_id",
+        "caption_id"
+      ],
+      "title": "LinkCaption",
+      "type": "object"
+    },
+    "Merge": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "merge",
+          "default": "merge",
+          "title": "Op",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Ids",
+          "type": "array"
+        },
+        "separator": {
+          "default": " ",
+          "enum": [
+            " ",
+            "",
+            "\n"
+          ],
+          "title": "Separator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ids"
+      ],
+      "title": "Merge",
+      "type": "object"
+    },
+    "Move": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "move",
+          "default": "move",
+          "title": "Op",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Ids",
+          "type": "array"
+        },
+        "before_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Before Id"
+        },
+        "after_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "After Id"
+        }
+      },
+      "required": [
+        "ids"
+      ],
+      "title": "Move",
+      "type": "object"
+    },
+    "SetAlt": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_alt",
+          "default": "set_alt",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "alt": {
+          "maxLength": 2000,
+          "title": "Alt",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "alt"
+      ],
+      "title": "SetAlt",
+      "type": "object"
+    },
+    "SetChapterBreak": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_chapter_break",
+          "default": "set_chapter_break",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "value"
+      ],
+      "title": "SetChapterBreak",
+      "type": "object"
+    },
+    "SetGlobalStyle": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_global_style",
+          "default": "set_global_style",
+          "title": "Op",
+          "type": "string"
+        },
+        "props": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "title": "Props",
+          "type": "object"
+        }
+      },
+      "required": [
+        "props"
+      ],
+      "title": "SetGlobalStyle",
+      "type": "object"
+    },
+    "SetHeadingLevel": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_heading_level",
+          "default": "set_heading_level",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "level": {
+          "maximum": 6,
+          "minimum": 1,
+          "title": "Level",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "level"
+      ],
+      "title": "SetHeadingLevel",
+      "type": "object"
+    },
+    "SetIncluded": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_included",
+          "default": "set_included",
+          "title": "Op",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Ids",
+          "type": "array"
+        },
+        "included": {
+          "title": "Included",
+          "type": "boolean"
+        },
+        "mode": {
+          "default": "item",
+          "enum": [
+            "item",
+            "batch"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ids",
+        "included"
+      ],
+      "title": "SetIncluded",
+      "type": "object"
+    },
+    "SetLocked": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_locked",
+          "default": "set_locked",
+          "title": "Op",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Ids",
+          "type": "array"
+        },
+        "locked": {
+          "title": "Locked",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ids",
+        "locked"
+      ],
+      "title": "SetLocked",
+      "type": "object"
+    },
+    "SetMetadata": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_metadata",
+          "default": "set_metadata",
+          "title": "Op",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "authors": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Authors"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        }
+      },
+      "title": "SetMetadata",
+      "type": "object"
+    },
+    "SetStyle": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_style",
+          "default": "set_style",
+          "title": "Op",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Ids",
+          "type": "array"
+        },
+        "style": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Style",
+          "type": "object"
+        }
+      },
+      "required": [
+        "ids",
+        "style"
+      ],
+      "title": "SetStyle",
+      "type": "object"
+    },
+    "SetText": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_text",
+          "default": "set_text",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 200000,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ],
+      "title": "SetText",
+      "type": "object"
+    },
+    "SetType": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "set_type",
+          "default": "set_type",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "heading",
+            "paragraph",
+            "list_item",
+            "blockquote",
+            "caption",
+            "footnote",
+            "header",
+            "footer",
+            "page_number",
+            "toc",
+            "image",
+            "figure",
+            "formula",
+            "decoration",
+            "watermark",
+            "table",
+            "cover"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "subtype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subtype"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "SetType",
+      "type": "object"
+    },
+    "Split": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "split",
+          "default": "split",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "offset": {
+          "minimum": 1,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "new_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "New Id"
+        }
+      },
+      "required": [
+        "id",
+        "offset"
+      ],
+      "title": "Split",
+      "type": "object"
+    },
+    "Ungroup": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "op": {
+          "const": "ungroup",
+          "default": "ungroup",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Ungroup",
+      "type": "object"
+    }
+  },
+  "items": {
+    "discriminator": {
+      "mapping": {
+        "create_region": "#/$defs/CreateRegion",
+        "group": "#/$defs/Group",
+        "link_caption": "#/$defs/LinkCaption",
+        "merge": "#/$defs/Merge",
+        "move": "#/$defs/Move",
+        "set_alt": "#/$defs/SetAlt",
+        "set_chapter_break": "#/$defs/SetChapterBreak",
+        "set_global_style": "#/$defs/SetGlobalStyle",
+        "set_heading_level": "#/$defs/SetHeadingLevel",
+        "set_included": "#/$defs/SetIncluded",
+        "set_locked": "#/$defs/SetLocked",
+        "set_metadata": "#/$defs/SetMetadata",
+        "set_style": "#/$defs/SetStyle",
+        "set_text": "#/$defs/SetText",
+        "set_type": "#/$defs/SetType",
+        "split": "#/$defs/Split",
+        "ungroup": "#/$defs/Ungroup"
+      },
+      "propertyName": "op"
+    },
+    "oneOf": [
+      {
+        "$ref": "#/$defs/SetIncluded"
+      },
+      {
+        "$ref": "#/$defs/SetLocked"
+      },
+      {
+        "$ref": "#/$defs/SetType"
+      },
+      {
+        "$ref": "#/$defs/SetHeadingLevel"
+      },
+      {
+        "$ref": "#/$defs/SetText"
+      },
+      {
+        "$ref": "#/$defs/SetStyle"
+      },
+      {
+        "$ref": "#/$defs/SetGlobalStyle"
+      },
+      {
+        "$ref": "#/$defs/LinkCaption"
+      },
+      {
+        "$ref": "#/$defs/SetAlt"
+      },
+      {
+        "$ref": "#/$defs/Move"
+      },
+      {
+        "$ref": "#/$defs/SetChapterBreak"
+      },
+      {
+        "$ref": "#/$defs/Split"
+      },
+      {
+        "$ref": "#/$defs/Merge"
+      },
+      {
+        "$ref": "#/$defs/Group"
+      },
+      {
+        "$ref": "#/$defs/Ungroup"
+      },
+      {
+        "$ref": "#/$defs/CreateRegion"
+      },
+      {
+        "$ref": "#/$defs/SetMetadata"
+      }
+    ]
+  },
+  "type": "array"
+}

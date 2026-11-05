@@ -1,0 +1,95 @@
+# Conversor PDF → EPUB. Uso: docker compose up -d --build  → http://localhost:3000
+# Serviços expostos apenas em 127.0.0.1 (modo individual, sem autenticação).
+name: pdf-epub
+
+x-backend: &backend
+  build: ./backend
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    DATABASE_URL: postgresql+psycopg://epub:${POSTGRES_PASSWORD:-epub-local}@db:5432/epub
+    DATA_DIR: /data
+    OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+    CHROMIUM_NO_SANDBOX: "1"
+  volumes:
+    - appdata:/data
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  security_opt:
+    - no-new-privileges:true
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: epub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-epub-local}
+      POSTGRES_DB: epub
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U epub -d epub"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    <<: *backend
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  worker:
+    <<: *backend
+    command: ["python", "-m", "app.worker"]
+    depends_on:
+      api:
+        condition: service_healthy
+    # recursos limitados para processamento de documentos
+    cpus: ${WORKER_CPUS:-4}
+    mem_limit: ${WORKER_MEMORY:-4g}
+    pids_limit: 512
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        API_URL: http://api:8000
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Opcional: Ollama em contêiner (docker compose --profile ollama up -d).
+  # Para GPU NVIDIA, descomente "deploy" (requer NVIDIA Container Toolkit).
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]
+
+volumes:
+  pgdata:
+  appdata:
+  ollama:
