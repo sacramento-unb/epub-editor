@@ -149,7 +149,7 @@ def test_ai_cannot_reinclude_excluded(client, pdfs):
 
 
 def test_gemini_key_never_exposed(client, pdfs, app_env, caplog):
-    key = "AIzaSyTESTKEY1234567890abcdefghijk"
+    key = "test-key-placeholder"
     r = client.put("/api/ai/settings", json={"gemini_key": key, "mode": "gemini"})
     assert r.status_code == 200 and key not in r.text and r.json()["gemini"]["has_key"]
     assert key not in client.get("/api/ai/settings").text
